@@ -22,3 +22,12 @@ class CaseResponse(BaseModel):
     resolved_at: datetime | None
 
     model_config = ConfigDict(from_attributes=True)
+
+class CaseUpdate(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    category: str | None = None
+    priority: str | None = None
+    status: str | None = None
+    assigned_team: str | None = None
+
