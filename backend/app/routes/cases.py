@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.models import Case
-from app.schemas import CaseCreate, CaseResponse, CaseUpdate
-
+from app.schemas import CaseCreate, CaseResponse, CaseUpdate, Priority, Status, SortBy, SortOrder
+from sqlalchemy import or_
 
 router = APIRouter(
     prefix="/cases",
@@ -39,11 +39,52 @@ def create_case(
 
 @router.get("/", response_model=list[CaseResponse])
 def get_cases(
+    status: Status | None = None,
+    priority: Priority | None = None,
+    category: str | None = None,
+    assigned_team: str | None = None,
+    search: str | None = None,
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=20, ge=1, le=100),
+    sort_by: SortBy = SortBy.created_at,
+    sort_order: SortOrder = SortOrder.desc,
     db: Session = Depends(get_db)
 ):
-    cases = db.query(Case).all()
+    query = db.query(Case)
 
-    return cases
+    if status:
+        query = query.filter(Case.status == status)
+
+    if priority:
+        query = query.filter(Case.priority == priority)
+
+    if category:
+        query = query.filter(Case.category == category)
+
+    if assigned_team:
+        query = query.filter(Case.assigned_team == assigned_team)
+
+    if search:
+        query = query.filter(
+    or_(
+        Case.title.ilike(f"%{search}%"),
+        Case.description.ilike(f"%{search}%")
+    )
+)
+
+    sortable_fields = {
+    "created_at": Case.created_at,
+    "priority": Case.priority,
+    "status": Case.status,
+    "title": Case.title,
+}
+
+    sort_column = sortable_fields.get(sort_by, Case.created_at)
+    if sort_order == "asc":
+        query = query.order_by(sort_column.asc())
+    else:
+        query = query.order_by(sort_column.desc())
+    return query.offset(skip).limit(limit).all()
 
 @router.get("/{case_id}", response_model=CaseResponse)
 def get_case(
