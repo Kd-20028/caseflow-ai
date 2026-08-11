@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routes import cases
+from app.routes import cases, analytics
 
 from app.database import Base, engine
 from app import models
@@ -15,6 +15,7 @@ app = FastAPI(
 )
 
 app.include_router(cases.router)
+app.include_router(analytics.router)
 
 @app.get("/")
 def root():

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from datetime import datetime
 
 from app.database import SessionLocal
 from app.models import Case
@@ -120,6 +121,12 @@ def update_case(
     for field, value in update_data.items():
         setattr(case, field, value)
 
+    if case_data.status == Status.resolved:
+        case.resolved_at = datetime.utcnow()
+
+    elif case_data.status is not None and case_data.status != Status.resolved:
+        case.resolved_at = None
+
     db.commit()
     db.refresh(case)
 
@@ -144,3 +151,4 @@ def delete_case(
     return {
         "message": "Case deleted successfully"
     }
+

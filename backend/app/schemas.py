@@ -10,7 +10,6 @@ class SortBy(str, Enum):
     status = "status"
     title = "title"
 
-
 class SortOrder(str, Enum):
     asc = "asc"
     desc = "desc"
@@ -20,12 +19,18 @@ class Priority(str, Enum):
     medium = "medium"
     high = "high"
 
-
 class Status(str, Enum):
     open = "open"
     in_progress = "in_progress"
     resolved = "resolved"
 
+class Category(str, Enum):
+    billing = "billing"
+    technical = "technical"
+    account = "account"
+    service = "service"
+    product = "product"
+    general = "general"
 
 class CaseCreate(BaseModel):
     title: str
@@ -44,7 +49,7 @@ class CaseResponse(BaseModel):
     id: int
     title: str
     description: str
-    category: str | None
+    category: str | None = None
     priority: Priority
     status: Status
     sentiment: str | None
